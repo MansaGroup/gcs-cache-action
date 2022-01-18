@@ -1,4 +1,4 @@
-<!-- ![Banner](.github/assets/banner-thin.png) -->
+![Banner](.github/assets/banner-thin.png)
 
 # Google Cloud Storage Cache Action
 
