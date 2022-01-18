@@ -101,6 +101,47 @@ when decompressing, the correct algorithm will be used.
 > Note that if a cache archive was compressed using one algorithm, this
 > same algorithm should be installed to decompress it after.
 
+## Terraform
+
+Here is a little snippet allowing you to create your cache bucket with
+**[Terraform](https://www.terraform.io/)**, which you should probably use :)
+
+```terraform
+resource "google_storage_bucket" "ci_cache" {
+  name                        = "your-ci-cache"
+  location                    = "your-location" # "EUROPE-WEST1"
+  uniform_bucket_level_access = true
+
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+
+    condition {
+      age = 7
+    }
+  }
+}
+
+resource "google_storage_bucket_iam_member" "ci_cache_write_github_ci" {
+  bucket = google_storage_bucket.ci_cache.name
+  role   = "roles/storage.objectCreator"
+  member = "serviceAccount:github-ci@your-project.iam.gserviceaccount.com"
+}
+
+resource "google_storage_bucket_iam_member" "ci_cache_read_github_ci" {
+  bucket = google_storage_bucket.ci_cache.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:github-ci@your-project.iam.gserviceaccount.com"
+}
+
+resource "google_storage_bucket_iam_member" "ci_cache_legacy_write_github_ci" {
+  bucket = google_storage_bucket.ci_cache.name
+  role   = "roles/storage.legacyBucketWriter"
+  member = "serviceAccount:github-ci@your-project.iam.gserviceaccount.com"
+}
+```
+
 ## Q&A
 
 ### Could I use this action on multiple repositories with the same bucket?
