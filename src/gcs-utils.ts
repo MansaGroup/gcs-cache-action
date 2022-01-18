@@ -1,7 +1,10 @@
 import { CompressionMethod } from './tar-utils';
 
+export interface ObjectMetadata {
+  updated: string;
+  metadata: CacheActionMetadata;
+}
+
 export interface CacheActionMetadata {
-  metadata: {
-    'Cache-Action-Compression-Method': CompressionMethod;
-  };
+  'Cache-Action-Compression-Method': CompressionMethod;
 }

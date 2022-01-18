@@ -14,6 +14,9 @@ async function main() {
   const inputs = getInputs();
   const state = getState();
 
+  core.debug(JSON.stringify(inputs));
+  core.debug(JSON.stringify(state));
+
   if (state.cacheHitKind === 'exact') {
     console.log(
       '🌀 Skipping uploading cache as the cache was hit by exact match.',
@@ -26,6 +29,8 @@ async function main() {
 
   const targetFileName = `${folderPrefix}/${inputs.key}.tar`;
   const [targetFileExists] = await bucket.file(targetFileName).exists();
+
+  core.debug(targetFileName);
 
   if (targetFileExists) {
     console.log(
@@ -43,24 +48,32 @@ async function main() {
     .glob()
     .then((files) => files.map((file) => path.relative(workspace, file)));
 
+  core.debug(JSON.stringify(paths));
+
   return withTemporaryFile(async (tmpFile) => {
     const compressionMethod = await core.group(
-      '🗜️ Creating cache archive...',
+      '🗜️ Creating cache archive',
       () => createTar(tmpFile.path, paths, workspace),
     );
 
-    console.log('🌐 Uploading cache archive to bucket...');
-
-    const metadata: CacheActionMetadata = {
-      metadata: {
-        'Cache-Action-Compression-Method': compressionMethod,
-      },
+    const customMetadata: CacheActionMetadata = {
+      'Cache-Action-Compression-Method': compressionMethod,
     };
 
-    await bucket.upload(tmpFile.path, {
-      destination: targetFileName,
-      metadata,
+    core.debug(JSON.stringify(customMetadata));
+
+    await core.group('🌐 Uploading cache archive to bucket', async () => {
+      console.log(`🔹 Uploading file '${targetFileName}'...`);
+
+      await bucket.upload(tmpFile.path, {
+        destination: targetFileName,
+        metadata: {
+          metadata: customMetadata,
+        },
+      });
     });
+
+    console.log('✅ Successfully saved cache.');
   });
 }
 

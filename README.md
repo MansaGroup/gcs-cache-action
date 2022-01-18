@@ -104,7 +104,7 @@ when decompressing, the correct algorithm will be used.
 ## Terraform
 
 Here is a little snippet allowing you to create your cache bucket with
-**[Terraform](https://www.terraform.io/)**, which you should probably use :)
+**[Terraform](https://www.terraform.io/)** _(which you should probably use)_:
 
 ```terraform
 resource "google_storage_bucket" "ci_cache" {
