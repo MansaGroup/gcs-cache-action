@@ -1,8 +1,8 @@
-import exec from '@actions/exec';
-import github from '@actions/github';
-import glob from '@actions/glob';
+import * as exec from '@actions/exec';
+import * as github from '@actions/github';
+import * as glob from '@actions/glob';
 import { Storage } from '@google-cloud/storage';
-import path from 'path';
+import * as path from 'path';
 import { withFile as withTemporaryFile } from 'tmp-promise';
 
 import { getInputs } from './inputs';

@@ -1,6 +1,6 @@
-import core from '@actions/core';
-import exec from '@actions/exec';
-import github from '@actions/github';
+import * as core from '@actions/core';
+import * as exec from '@actions/exec';
+import * as github from '@actions/github';
 import { Storage, File, Bucket } from '@google-cloud/storage';
 import { withFile as withTemporaryFile } from 'tmp-promise';
 
