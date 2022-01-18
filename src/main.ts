@@ -21,6 +21,8 @@ async function getBestMatch(
   if (exactFileExists) {
     console.log(`🙌 Found exact match from cache: ${key}.`);
     return [exactFile, 'exact'];
+  } else {
+    console.log(`🔸 No exact match found: ${key}.`);
   }
 
   const [bucketFiles] = await bucket.getFiles({
