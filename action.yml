@@ -1,0 +1,32 @@
+name: 'Google Cloud Storage Cache'
+author: 'MansaGroup'
+description: 'Cache your workload to a Google Cloud Storage bucket'
+
+inputs:
+  bucket:
+    description: Name of the bucket to store the cache into
+    required: true
+  path:
+    description: Paths to store
+    required: true
+  key:
+    description: Key to use as cache identifier
+    required: true
+  restore-keys:
+    description: Substitution keys to use when cache miss
+    default: ''
+    required: false
+
+outputs:
+  cache-hit:
+    description: Whether the cache was successfuly restored
+
+runs:
+  using: 'node16'
+  main: 'dist/main/index.js'
+  post: 'dist/post/index.js'
+  post-if: 'success()'
+
+branding:
+  icon: 'terminal'
+  color: 'blue'

@@ -1,0 +1,23 @@
+{
+  "extends": ["config:base"],
+  "automerge": true,
+  "dependencyDashboard": false,
+  "enabledManagers": ["github-actions", "npm"],
+  "labels": ["type:dependencies :wrench:"],
+  "node": {
+    "supportPolicy": ["lts_latest"]
+  },
+  "prCreation": "not-pending",
+  "reviewersFromCodeOwners": false,
+  "stabilityDays": 3,
+  "updateNotScheduled": false,
+  "vulnerabilityAlerts": {
+    "labels": ["priority:critical :fire:"]
+  },
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "prPriority": -1
+    }
+  ]
+}
