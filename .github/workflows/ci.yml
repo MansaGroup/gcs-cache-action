@@ -20,24 +20,24 @@ jobs:
       - name: Build
         run: npm run build
 
-  test:
-    runs-on: ubuntu-latest
+  # test:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm ci
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Run tests
-        uses: ./
-        with:
-          bucket: fake-bucket-name
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            node-modules-${{ runner.os }}-
+  #     - name: Run tests
+  #       uses: ./
+  #       with:
+  #         bucket: fake-bucket-name
+  #         path: node_modules
+  #         key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+  #         restore-keys: |
+  #           node-modules-${{ runner.os }}-
 
   lint:
     runs-on: ubuntu-latest
