@@ -8,7 +8,7 @@ export interface Inputs {
 }
 
 export function getInputs(): Inputs {
-  return {
+  const inputs = {
     bucket: core.getInput('bucket', { required: true }),
     path: core.getInput('path', { required: true }),
     key: core.getInput('key', { required: true }),
@@ -17,4 +17,8 @@ export function getInputs(): Inputs {
       .split(',')
       .filter((path) => path),
   };
+
+  core.debug(`Loaded inputs: ${JSON.stringify(inputs)}.`);
+
+  return inputs;
 }

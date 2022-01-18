@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import * as glob from '@actions/glob';
 import { Storage } from '@google-cloud/storage';
 import * as path from 'path';
@@ -14,9 +13,6 @@ async function main() {
   const inputs = getInputs();
   const state = getState();
 
-  core.debug(JSON.stringify(inputs));
-  core.debug(JSON.stringify(state));
-
   if (state.cacheHitKind === 'exact') {
     console.log(
       '🌀 Skipping uploading cache as the cache was hit by exact match.',
@@ -25,12 +21,10 @@ async function main() {
   }
 
   const bucket = new Storage().bucket(inputs.bucket);
-  const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
-
-  const targetFileName = `${folderPrefix}/${inputs.key}.tar`;
+  const targetFileName = state.targetFileName;
   const [targetFileExists] = await bucket.file(targetFileName).exists();
 
-  core.debug(targetFileName);
+  core.debug(`Target file name: ${targetFileName}.`);
 
   if (targetFileExists) {
     console.log(
@@ -48,7 +42,7 @@ async function main() {
     .glob()
     .then((files) => files.map((file) => path.relative(workspace, file)));
 
-  core.debug(JSON.stringify(paths));
+  core.debug(`Paths: ${JSON.stringify(paths)}.`);
 
   return withTemporaryFile(async (tmpFile) => {
     const compressionMethod = await core.group(
@@ -60,7 +54,7 @@ async function main() {
       'Cache-Action-Compression-Method': compressionMethod,
     };
 
-    core.debug(JSON.stringify(customMetadata));
+    core.debug(`Metadata: ${JSON.stringify(customMetadata)}.`);
 
     await core.group('🌐 Uploading cache archive to bucket', async () => {
       console.log(`🔹 Uploading file '${targetFileName}'...`);

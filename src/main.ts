@@ -5,7 +5,7 @@ import { withFile as withTemporaryFile } from 'tmp-promise';
 
 import { ObjectMetadata } from './gcs-utils';
 import { getInputs } from './inputs';
-import { CacheHitKindState, saveState, State } from './state';
+import { CacheHitKindState, saveState } from './state';
 import { extractTar } from './tar-utils';
 
 async function getBestMatch(
@@ -18,7 +18,7 @@ async function getBestMatch(
   const exactFile = bucket.file(`${folderPrefix}/${key}.tar`);
   const [exactFileExists] = await exactFile.exists();
 
-  core.debug(exactFile.name);
+  core.debug(`Exact file name: ${exactFile.name}.`);
 
   if (exactFileExists) {
     console.log(`🙌 Found exact match from cache for key '${key}'.`);
@@ -41,12 +41,14 @@ async function getBestMatch(
 
   if (core.isDebug()) {
     core.debug(
-      JSON.stringify(
+      `Candidates: ${JSON.stringify(
         bucketFiles.map((f) => ({
           name: f.name,
-          metadata: f.metadata as ObjectMetadata,
+          metadata: {
+            updated: (f.metadata as ObjectMetadata).updated,
+          },
         })),
-      ),
+      )}.`,
     );
   }
 
@@ -72,6 +74,9 @@ async function main() {
   const inputs = getInputs();
   const bucket = new Storage().bucket(inputs.bucket);
 
+  const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
+  const exactFileName = `${folderPrefix}/${inputs.key}.tar`;
+
   const [bestMatch, bestMatchKind] = await core
     .group('🔍 Searching the best cache archive available', () =>
       getBestMatch(bucket, inputs.key, inputs.restoreKeys),
@@ -81,34 +86,37 @@ async function main() {
       throw err;
     });
 
-  core.debug(bestMatchKind);
+  core.debug(`Best match kind: ${bestMatchKind}.`);
 
   if (!bestMatch) {
     saveState({
       cacheHitKind: 'none',
+      targetFileName: exactFileName,
     });
     core.setOutput('cache-hit', 'false');
     console.log('😢 No cache candidate found.');
     return;
   }
 
-  core.debug(bestMatch.name);
+  core.debug(`Best match name: ${bestMatch.name}.`);
 
   const bestMatchMetadata = await bestMatch
     .getMetadata()
     .then(([metadata]) => metadata as ObjectMetadata);
 
-  core.debug(JSON.stringify(bestMatchMetadata));
+  core.debug(`Best match metadata: ${JSON.stringify(bestMatchMetadata)}.`);
 
   const compressionMethod =
     bestMatchMetadata?.metadata?.['Cache-Action-Compression-Method'];
 
-  core.debug(compressionMethod);
+  core.debug(`Best match compression method: ${compressionMethod}.`);
 
   if (!bestMatchMetadata || !compressionMethod) {
     saveState({
       cacheHitKind: 'none',
+      targetFileName: exactFileName,
     });
+
     core.setOutput('cache-hit', 'false');
     console.log('😢 No cache candidate found (missing metadata).');
     return;
@@ -129,13 +137,10 @@ async function main() {
       extractTar(tmpFile.path, compressionMethod, workspace),
     );
 
-    const state: State = {
+    saveState({
       cacheHitKind: bestMatchKind,
-    };
-
-    core.debug(compressionMethod);
-    saveState(state);
-
+      targetFileName: exactFileName,
+    });
     core.setOutput('cache-hit', 'true');
     console.log('✅ Successfully restored cache.');
   });
