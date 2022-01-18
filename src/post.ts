@@ -1,4 +1,3 @@
-import * as exec from '@actions/exec';
 import * as github from '@actions/github';
 import * as glob from '@actions/glob';
 import { Storage } from '@google-cloud/storage';
@@ -7,6 +6,7 @@ import { withFile as withTemporaryFile } from 'tmp-promise';
 
 import { getInputs } from './inputs';
 import { getState } from './state';
+import { createTar } from './tar-utils';
 
 async function main() {
   const inputs = getInputs();
@@ -43,16 +43,7 @@ async function main() {
 
   return withTemporaryFile(async (tmpFile) => {
     console.log('🗜️ Creating cache archive...');
-
-    await exec.exec('tar', [
-      '--posix',
-      '-czf',
-      tmpFile.path,
-      '-P',
-      '-C',
-      workspace,
-      ...paths,
-    ]);
+    await createTar(tmpFile.path, paths, workspace);
 
     console.log('🌐 Uploading cache archive to bucket...');
     await bucket.upload(tmpFile.path, {

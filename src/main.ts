@@ -1,11 +1,11 @@
 import * as core from '@actions/core';
-import * as exec from '@actions/exec';
 import * as github from '@actions/github';
 import { Storage, File, Bucket } from '@google-cloud/storage';
 import { withFile as withTemporaryFile } from 'tmp-promise';
 
 import { getInputs } from './inputs';
 import { CacheHitKindState, saveState } from './state';
+import { extractTar } from './tar-utils';
 
 async function getBestMatch(
   bucket: Bucket,
@@ -75,7 +75,7 @@ async function main() {
     });
 
     console.log('🗜️ Extracting cache archive...');
-    await exec.exec('tar', ['-xzf', tmpFile.path, '-P', '-C', workspace]);
+    await extractTar(tmpFile.path, workspace);
 
     saveState({
       cacheHitKind: bestMatchKind,
