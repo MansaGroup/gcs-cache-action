@@ -4,9 +4,9 @@ import * as exec from '@actions/exec';
 import * as semver from 'semver';
 
 enum CompressionMethod {
-  GZIP,
-  ZSTD_WITHOUT_LONG,
-  ZSTD,
+  GZIP = 'gzip',
+  ZSTD_WITHOUT_LONG = 'zstd (without long)',
+  ZSTD = 'zstd',
 }
 
 async function getTarCompressionMethod(): Promise<CompressionMethod> {
@@ -37,6 +37,7 @@ export async function createTar(
   cwd: string,
 ): Promise<number> {
   const compressionMethod = await getTarCompressionMethod();
+  console.log(`🔹 Using '${compressionMethod}' compression method.`);
 
   const compressionArgs =
     compressionMethod === CompressionMethod.GZIP
@@ -62,6 +63,7 @@ export async function extractTar(
   cwd: string,
 ): Promise<number> {
   const compressionMethod = await getTarCompressionMethod();
+  console.log(`🔹 Using '${compressionMethod}' compression method.`);
 
   const compressionArgs =
     compressionMethod === CompressionMethod.GZIP

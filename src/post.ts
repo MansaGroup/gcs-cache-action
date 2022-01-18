@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as glob from '@actions/glob';
 import { Storage } from '@google-cloud/storage';
@@ -42,8 +43,9 @@ async function main() {
     .then((files) => files.map((file) => path.relative(workspace, file)));
 
   return withTemporaryFile(async (tmpFile) => {
-    console.log('🗜️ Creating cache archive...');
-    await createTar(tmpFile.path, paths, workspace);
+    await core.group('🗜️ Creating cache archive...', () =>
+      createTar(tmpFile.path, paths, workspace),
+    );
 
     console.log('🌐 Uploading cache archive to bucket...');
     await bucket.upload(tmpFile.path, {

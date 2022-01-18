@@ -74,8 +74,9 @@ async function main() {
       destination: tmpFile.path,
     });
 
-    console.log('🗜️ Extracting cache archive...');
-    await extractTar(tmpFile.path, workspace);
+    await core.group('🗜️ Extracting cache archive...', () =>
+      extractTar(tmpFile.path, workspace),
+    );
 
     saveState({
       cacheHitKind: bestMatchKind,
