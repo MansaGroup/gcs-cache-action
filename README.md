@@ -27,6 +27,7 @@ contain your target Google Cloud Storage bucket. **As simple as that.**
     service_account: github-ci@your-project.iam.gserviceaccount.com
 
 - name: Cache the node_modules
+  id: node-modules-cache
   uses: mansagroup/gcs-cache-action@v2
   with:
     bucket: my-ci-cache
@@ -34,6 +35,10 @@ contain your target Google Cloud Storage bucket. **As simple as that.**
     key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
     restore-keys: |
       node-modules-${{ runner.os }}-
+
+- name: Install dependencies
+  if: steps.node-modules-cache.outputs.cache-hit == 'false'
+  run: npm ci
 ```
 
 ## Inputs
@@ -49,6 +54,14 @@ This GitHub action can take several inputs to configure its behaviors:
 
 **Note**: the `path` and `restore-keys` inputs can contains multiple value separated by a new line.
 
+## Outputs
+
+This GitHub action will output the following values:
+
+| Name      | Type   | Description                                                          |
+| --------- | ------ | -------------------------------------------------------------------- |
+| cache-hit | String | A boolean string representing if the cache was successfully restored |
+
 ## Examples
 
 ### With multiple paths
@@ -63,6 +76,7 @@ This GitHub action can take several inputs to configure its behaviors:
     service_account: github-ci@your-project.iam.gserviceaccount.com
 
 - name: Cache the node_modules and npm cache
+  id: node-modules-cache
   uses: mansagroup/gcs-cache-action@v2
   with:
     bucket: my-ci-cache

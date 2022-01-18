@@ -9,7 +9,7 @@ export interface Inputs {
 
 export function getInputs(): Inputs {
   return {
-    bucket: core.getInput('targets', { required: true }),
+    bucket: core.getInput('bucket', { required: true }),
     path: core.getInput('path', { required: true }),
     key: core.getInput('key', { required: true }),
     restoreKeys: core
