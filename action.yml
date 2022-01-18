@@ -28,5 +28,5 @@ runs:
   post-if: 'success()'
 
 branding:
-  icon: 'terminal'
+  icon: 'hard-drive'
   color: 'blue'
