@@ -88,6 +88,19 @@ This GitHub action will output the following values:
       npm-and-node-modules-${{ runner.os }}-
 ```
 
+## Compression algorithm
+
+When compressing or decompressing the cache archive, the action will
+lookup for the best compression algorithm to use. If `zstd` is available,
+it will be used instead of `gzip` by default. The compression method
+will be added to the object's metadata on the Bucket. Thanks to this,
+when decompressing, the correct algorithm will be used.
+
+> Installing `zstd` on Ubuntu is simple as doing a `apt install zstd`.
+
+> Note that if a cache archive was compressed using one algorithm, this
+> same algorithm should be installed to decompress it after.
+
 ## Q&A
 
 ### Could I use this action on multiple repositories with the same bucket?
