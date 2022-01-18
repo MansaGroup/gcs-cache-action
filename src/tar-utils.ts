@@ -3,7 +3,7 @@
 import * as exec from '@actions/exec';
 import * as semver from 'semver';
 
-enum CompressionMethod {
+export enum CompressionMethod {
   GZIP = 'gzip',
   ZSTD_WITHOUT_LONG = 'zstd (without long)',
   ZSTD = 'zstd',
@@ -35,7 +35,7 @@ export async function createTar(
   archivePath: string,
   paths: string[],
   cwd: string,
-): Promise<number> {
+): Promise<CompressionMethod> {
   const compressionMethod = await getTarCompressionMethod();
   console.log(`🔹 Using '${compressionMethod}' compression method.`);
 
@@ -46,24 +46,29 @@ export async function createTar(
       ? ['--use-compress-program', 'zstd -T0 --long=30']
       : ['--use-compress-program', 'zstd -T0'];
 
-  return exec.exec('tar', [
+  await exec.exec('tar', [
     '-c',
     ...compressionArgs,
     '--posix',
+    '-P',
     '-f',
     archivePath,
     '-C',
     cwd,
     ...paths,
   ]);
+
+  return compressionMethod;
 }
 
 export async function extractTar(
   archivePath: string,
+  compressionMethod: CompressionMethod,
   cwd: string,
-): Promise<number> {
-  const compressionMethod = await getTarCompressionMethod();
-  console.log(`🔹 Using '${compressionMethod}' compression method.`);
+): Promise<void> {
+  console.log(
+    `🔹 Detected '${compressionMethod}' compression method from object metadata.`,
+  );
 
   const compressionArgs =
     compressionMethod === CompressionMethod.GZIP
@@ -72,9 +77,10 @@ export async function extractTar(
       ? ['--use-compress-program', 'zstd -d --long=30']
       : ['--use-compress-program', 'zstd -d'];
 
-  return exec.exec('tar', [
+  await exec.exec('tar', [
     '-x',
     ...compressionArgs,
+    '-P',
     '-f',
     archivePath,
     '-C',

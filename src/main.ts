@@ -3,6 +3,7 @@ import * as github from '@actions/github';
 import { Storage, File, Bucket } from '@google-cloud/storage';
 import { withFile as withTemporaryFile } from 'tmp-promise';
 
+import { CacheActionMetadata } from './gcs-utils';
 import { getInputs } from './inputs';
 import { CacheHitKindState, saveState } from './state';
 import { extractTar } from './tar-utils';
@@ -14,7 +15,7 @@ async function getBestMatch(
 ): Promise<[File, Exclude<CacheHitKindState, 'none'>] | [null, 'none']> {
   const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
 
-  const exactFile = bucket.file(`${folderPrefix}/${key}.tar.gz`);
+  const exactFile = bucket.file(`${folderPrefix}/${key}.tar`);
   const [exactFileExists] = await exactFile.exists();
 
   if (exactFileExists) {
@@ -66,6 +67,22 @@ async function main() {
     return;
   }
 
+  const bestMatchMetadata = await bestMatch
+    .getMetadata()
+    .then(([metadata]) => metadata as CacheActionMetadata);
+
+  const compressionMethod =
+    bestMatchMetadata?.metadata?.['Cache-Action-Compression-Method'];
+
+  if (!bestMatchMetadata || !compressionMethod) {
+    saveState({
+      cacheHitKind: 'none',
+    });
+    core.setOutput('cache-hit', 'false');
+    console.log('😢 No cache candidate found (missing metadata).');
+    return;
+  }
+
   const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
 
   return withTemporaryFile(async (tmpFile) => {
@@ -75,7 +92,7 @@ async function main() {
     });
 
     await core.group('🗜️ Extracting cache archive...', () =>
-      extractTar(tmpFile.path, workspace),
+      extractTar(tmpFile.path, compressionMethod, workspace),
     );
 
     saveState({

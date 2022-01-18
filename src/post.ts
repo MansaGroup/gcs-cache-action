@@ -5,6 +5,7 @@ import { Storage } from '@google-cloud/storage';
 import * as path from 'path';
 import { withFile as withTemporaryFile } from 'tmp-promise';
 
+import { CacheActionMetadata } from './gcs-utils';
 import { getInputs } from './inputs';
 import { getState } from './state';
 import { createTar } from './tar-utils';
@@ -23,7 +24,7 @@ async function main() {
   const bucket = new Storage().bucket(inputs.bucket);
   const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
 
-  const targetFileName = `${folderPrefix}/${inputs.key}.tar.gz`;
+  const targetFileName = `${folderPrefix}/${inputs.key}.tar`;
   const [targetFileExists] = await bucket.file(targetFileName).exists();
 
   if (targetFileExists) {
@@ -43,13 +44,22 @@ async function main() {
     .then((files) => files.map((file) => path.relative(workspace, file)));
 
   return withTemporaryFile(async (tmpFile) => {
-    await core.group('🗜️ Creating cache archive...', () =>
-      createTar(tmpFile.path, paths, workspace),
+    const compressionMethod = await core.group(
+      '🗜️ Creating cache archive...',
+      () => createTar(tmpFile.path, paths, workspace),
     );
 
     console.log('🌐 Uploading cache archive to bucket...');
+
+    const metadata: CacheActionMetadata = {
+      metadata: {
+        'Cache-Action-Compression-Method': compressionMethod,
+      },
+    };
+
     await bucket.upload(tmpFile.path, {
       destination: targetFileName,
+      metadata,
     });
   });
 }
