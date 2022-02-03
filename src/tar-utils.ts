@@ -74,8 +74,8 @@ export async function extractTar(
     compressionMethod === CompressionMethod.GZIP
       ? ['-z']
       : compressionMethod === CompressionMethod.ZSTD_WITHOUT_LONG
-      ? ['--use-compress-program', 'zstd -d --long=30']
-      : ['--use-compress-program', 'zstd -d'];
+      ? ['--use-compress-program', 'zstd -d']
+      : ['--use-compress-program', 'zstd -d --long=30'];
 
   await exec.exec('tar', [
     '-x',
