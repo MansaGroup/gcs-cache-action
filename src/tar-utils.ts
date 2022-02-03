@@ -3,6 +3,8 @@
 import * as exec from '@actions/exec';
 import * as semver from 'semver';
 
+const ZSTD_WITHOUT_LONG_VERSION = '1.3.2';
+
 export enum CompressionMethod {
   GZIP = 'gzip',
   ZSTD_WITHOUT_LONG = 'zstd (without long)',
@@ -20,11 +22,17 @@ async function getTarCompressionMethod(): Promise<CompressionMethod> {
       silent: true,
     })
     .then((out) => out.stdout.trim())
-    .then((out) => [out, semver.clean(out)]);
+    .then((out) => {
+      const extractedVersion = /v(\d+(?:\.\d+){0,})/.exec(out);
+      return [out, extractedVersion ? extractedVersion[1] : null];
+    });
 
   if (!zstdOutput?.toLowerCase().includes('zstd command line interface')) {
     return CompressionMethod.GZIP;
-  } else if (!zstdVersion || semver.lt(zstdVersion, 'v1.3.2')) {
+  } else if (
+    !zstdVersion ||
+    semver.lt(zstdVersion, ZSTD_WITHOUT_LONG_VERSION)
+  ) {
     return CompressionMethod.ZSTD_WITHOUT_LONG;
   } else {
     return CompressionMethod.ZSTD;
