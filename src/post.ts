@@ -5,12 +5,10 @@ import * as path from 'path';
 import { withFile as withTemporaryFile } from 'tmp-promise';
 
 import { CacheActionMetadata } from './gcs-utils';
-import { getInputs } from './inputs';
 import { getState } from './state';
 import { createTar } from './tar-utils';
 
 async function main() {
-  const inputs = getInputs();
   const state = getState();
 
   if (state.cacheHitKind === 'exact') {
@@ -20,7 +18,7 @@ async function main() {
     return;
   }
 
-  const bucket = new Storage().bucket(inputs.bucket);
+  const bucket = new Storage().bucket(state.bucket);
   const targetFileName = state.targetFileName;
   const [targetFileExists] = await bucket
     .file(targetFileName)
@@ -40,7 +38,7 @@ async function main() {
   }
 
   const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
-  const globber = await glob.create(inputs.path, {
+  const globber = await glob.create(state.path, {
     implicitDescendants: false,
   });
 

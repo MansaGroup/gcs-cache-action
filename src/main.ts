@@ -95,6 +95,8 @@ async function main() {
 
   if (!bestMatch) {
     saveState({
+      bucket: inputs.bucket,
+      path: inputs.path,
       cacheHitKind: 'none',
       targetFileName: exactFileName,
     });
@@ -122,6 +124,8 @@ async function main() {
 
   if (!bestMatchMetadata || !compressionMethod) {
     saveState({
+      bucket: inputs.bucket,
+      path: inputs.path,
       cacheHitKind: 'none',
       targetFileName: exactFileName,
     });
@@ -157,6 +161,8 @@ async function main() {
       });
 
     saveState({
+      path: inputs.path,
+      bucket: inputs.bucket,
       cacheHitKind: bestMatchKind,
       targetFileName: exactFileName,
     });
