@@ -9,9 +9,7 @@ import { getState } from './state';
 import { createTar } from './tar-utils';
 
 async function main() {
-  console.log('post is starting');
   const state = getState();
-  console.log('current state', state);
 
   if (state.cacheHitKind === 'exact') {
     console.log(
@@ -88,6 +86,5 @@ async function main() {
 
 void main().catch((err) => {
   core.error(err);
-  console.error(err);
-  //core.setFailed(err);
+  core.setFailed(err);
 });
