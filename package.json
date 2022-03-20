@@ -76,7 +76,7 @@
     "@actions/core": "1.6.0",
     "@actions/exec": "1.1.1",
     "@actions/github": "5.0.0",
-    "@actions/glob": "0.2.0",
+    "@actions/glob": "0.2.1",
     "@google-cloud/storage": "5.18.2",
     "semver": "7.3.5",
     "tmp-promise": "3.0.3"
