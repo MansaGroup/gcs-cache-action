@@ -78,7 +78,7 @@
     "@actions/github": "5.0.1",
     "@actions/glob": "0.2.1",
     "@google-cloud/storage": "5.18.3",
-    "semver": "7.3.5",
+    "semver": "7.3.6",
     "tmp-promise": "3.0.3"
   }
 }
