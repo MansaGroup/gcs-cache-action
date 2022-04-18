@@ -28,7 +28,7 @@ contain your target Google Cloud Storage bucket. **As simple as that.**
 
 - name: Cache the node_modules
   id: node-modules-cache
-  uses: mansagroup/gcs-cache-action@v2
+  uses: mansagroup/gcs-cache-action@v1.0.2
   with:
     bucket: my-ci-cache
     path: node_modules
@@ -77,7 +77,7 @@ This GitHub action will output the following values:
 
 - name: Cache the node_modules and npm cache
   id: node-modules-cache
-  uses: mansagroup/gcs-cache-action@v2
+  uses: mansagroup/gcs-cache-action@v1.0.2
   with:
     bucket: my-ci-cache
     path: |
