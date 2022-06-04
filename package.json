@@ -49,8 +49,8 @@
   },
   "homepage": "https://github.com/MansaGroup/gcs-cache-action#readme",
   "devDependencies": {
-    "@commitlint/cli": "17.0.1",
-    "@commitlint/config-conventional": "17.0.0",
+    "@commitlint/cli": "17.0.2",
+    "@commitlint/config-conventional": "17.0.2",
     "@types/semver": "7.3.9",
     "@types/tmp": "0.2.3",
     "@typescript-eslint/eslint-plugin": "4.33.0",
