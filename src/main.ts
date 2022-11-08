@@ -141,7 +141,7 @@ async function main() {
       cacheHitKind: bestMatchKind,
       targetFileName: exactFileName,
     });
-    core.setOutput('cache-hit', bestMatchKind == 'exact');
+    core.setOutput('cache-hit', bestMatchKind === 'exact');
     console.log('✅ Successfully restored cache.');
   });
 }
