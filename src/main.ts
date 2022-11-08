@@ -15,8 +15,13 @@ async function getBestMatch(
 ): Promise<[File, Exclude<CacheHitKindState, 'none'>] | [null, 'none']> {
   const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
 
+  core.debug(`Will lookup for the file ${folderPrefix}/${key}.tar`);
+
   const exactFile = bucket.file(`${folderPrefix}/${key}.tar`);
-  const [exactFileExists] = await exactFile.exists();
+  const [exactFileExists] = await exactFile.exists().catch((err) => {
+    core.error('Failed to check if an exact match exists');
+    throw err;
+  });
 
   core.debug(`Exact file name: ${exactFile.name}.`);
 
@@ -37,7 +42,11 @@ async function getBestMatch(
           new Date((b.metadata as ObjectMetadata).updated).getTime() -
           new Date((a.metadata as ObjectMetadata).updated).getTime(),
       ),
-    );
+    )
+    .catch((err) => {
+      core.error('Failed to list cache candidates');
+      throw err;
+    });
 
   if (core.isDebug()) {
     core.debug(
@@ -77,19 +86,17 @@ async function main() {
   const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
   const exactFileName = `${folderPrefix}/${inputs.key}.tar`;
 
-  const [bestMatch, bestMatchKind] = await core
-    .group('🔍 Searching the best cache archive available', () =>
-      getBestMatch(bucket, inputs.key, inputs.restoreKeys),
-    )
-    .catch((err) => {
-      core.setFailed(err);
-      throw err;
-    });
+  const [bestMatch, bestMatchKind] = await core.group(
+    '🔍 Searching the best cache archive available',
+    () => getBestMatch(bucket, inputs.key, inputs.restoreKeys),
+  );
 
   core.debug(`Best match kind: ${bestMatchKind}.`);
 
   if (!bestMatch) {
     saveState({
+      bucket: inputs.bucket,
+      path: inputs.path,
       cacheHitKind: 'none',
       targetFileName: exactFileName,
     });
@@ -102,7 +109,11 @@ async function main() {
 
   const bestMatchMetadata = await bestMatch
     .getMetadata()
-    .then(([metadata]) => metadata as ObjectMetadata);
+    .then(([metadata]) => metadata as ObjectMetadata)
+    .catch((err) => {
+      core.error('Failed to read object metadatas');
+      throw err;
+    });
 
   core.debug(`Best match metadata: ${JSON.stringify(bestMatchMetadata)}.`);
 
@@ -113,6 +124,8 @@ async function main() {
 
   if (!bestMatchMetadata || !compressionMethod) {
     saveState({
+      bucket: inputs.bucket,
+      path: inputs.path,
       cacheHitKind: 'none',
       targetFileName: exactFileName,
     });
@@ -125,19 +138,31 @@ async function main() {
   const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
 
   return withTemporaryFile(async (tmpFile) => {
-    await core.group('🌐 Downloading cache archive from bucket', async () => {
-      console.log(`🔹 Downloading file '${bestMatch.name}'...`);
+    await core
+      .group('🌐 Downloading cache archive from bucket', async () => {
+        console.log(`🔹 Downloading file '${bestMatch.name}'...`);
 
-      return bestMatch.download({
-        destination: tmpFile.path,
+        return bestMatch.download({
+          destination: tmpFile.path,
+        });
+      })
+      .catch((err) => {
+        core.error('Failed to download the file');
+        throw err;
       });
-    });
 
-    await core.group('🗜️ Extracting cache archive', () =>
-      extractTar(tmpFile.path, compressionMethod, workspace),
-    );
+    await core
+      .group('🗜️ Extracting cache archive', () =>
+        extractTar(tmpFile.path, compressionMethod, workspace),
+      )
+      .catch((err) => {
+        core.error('Failed to extract the archive');
+        throw err;
+      });
 
     saveState({
+      path: inputs.path,
+      bucket: inputs.bucket,
       cacheHitKind: bestMatchKind,
       targetFileName: exactFileName,
     });
@@ -146,4 +171,7 @@ async function main() {
   });
 }
 
-void main();
+void main().catch((err: Error) => {
+  core.error(err);
+  core.setFailed(err);
+});
