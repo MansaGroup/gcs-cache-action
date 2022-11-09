@@ -84,7 +84,7 @@ async function main() {
   });
 }
 
-void main().catch((err) => {
+void main().catch((err: Error) => {
   core.error(err);
   core.setFailed(err);
 });

@@ -166,12 +166,12 @@ async function main() {
       cacheHitKind: bestMatchKind,
       targetFileName: exactFileName,
     });
-    core.setOutput('cache-hit', 'true');
+    core.setOutput('cache-hit', bestMatchKind === 'exact');
     console.log('✅ Successfully restored cache.');
   });
 }
 
-void main().catch((err) => {
+void main().catch((err: Error) => {
   core.error(err);
   core.setFailed(err);
 });
