@@ -14,7 +14,8 @@ export function getInputs(): Inputs {
     key: core.getInput('key', { required: true }),
     restoreKeys: core
       .getInput('restore-keys')
-      .split(',')
+      .split(/(,|\n)/)
+      .map((key) => key.trim())
       .filter((path) => path),
   };
 
