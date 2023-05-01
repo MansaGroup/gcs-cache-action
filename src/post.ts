@@ -18,6 +18,10 @@ async function main() {
     return;
   }
 
+  if (state.rootDir) {
+    process.chdir(state.rootDir);
+  }
+
   const bucket = new Storage().bucket(state.bucket);
   const targetFileName = state.targetFileName;
   const [targetFileExists] = await bucket

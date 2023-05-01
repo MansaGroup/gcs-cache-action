@@ -7,6 +7,7 @@ export interface State {
   bucket: string;
   cacheHitKind: CacheHitKindState;
   targetFileName: string;
+  rootDir: string;
 }
 
 export function saveState(state: State): void {
@@ -16,6 +17,7 @@ export function saveState(state: State): void {
   core.saveState('path', state.path);
   core.saveState('cache-hit-kind', state.cacheHitKind);
   core.saveState('target-file-name', state.targetFileName);
+  core.saveState('root-dir', state.rootDir);
 }
 
 export function getState(): State {
@@ -24,6 +26,7 @@ export function getState(): State {
     bucket: core.getState('bucket'),
     cacheHitKind: core.getState('cache-hit-kind') as CacheHitKindState,
     targetFileName: core.getState('target-file-name'),
+    rootDir: core.getState('root-dir'),
   };
 
   core.debug(`Loaded state: ${JSON.stringify(state)}.`);

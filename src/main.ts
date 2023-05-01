@@ -86,6 +86,10 @@ async function main() {
   const folderPrefix = `${github.context.repo.owner}/${github.context.repo.repo}`;
   const exactFileName = `${folderPrefix}/${inputs.key}.tar`;
 
+  if (inputs.rootDir) {
+    process.chdir(inputs.rootDir);
+  }
+
   const [bestMatch, bestMatchKind] = await core.group(
     '🔍 Searching the best cache archive available',
     () => getBestMatch(bucket, inputs.key, inputs.restoreKeys),
@@ -99,6 +103,7 @@ async function main() {
       path: inputs.path,
       cacheHitKind: 'none',
       targetFileName: exactFileName,
+      rootDir: inputs.rootDir,
     });
     core.setOutput('cache-hit', 'false');
     console.log('😢 No cache candidate found.');
@@ -128,6 +133,7 @@ async function main() {
       path: inputs.path,
       cacheHitKind: 'none',
       targetFileName: exactFileName,
+      rootDir: inputs.rootDir,
     });
 
     core.setOutput('cache-hit', 'false');
@@ -165,6 +171,7 @@ async function main() {
       bucket: inputs.bucket,
       cacheHitKind: bestMatchKind,
       targetFileName: exactFileName,
+      rootDir: inputs.rootDir,
     });
     core.setOutput('cache-hit', bestMatchKind === 'exact');
     console.log('✅ Successfully restored cache.');
